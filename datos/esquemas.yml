@@ -1,0 +1,98 @@
+asi-hablo-zaratustra:
+- kind: chain
+  title: Las tres transformaciones del espíritu
+  steps:
+  - h: Camello
+    t: 'Carga con los valores heredados: «tú debes».'
+  - h: León
+    t: 'Los rompe y conquista su libertad: «yo quiero».'
+  - h: Niño
+    t: 'Inocencia y juego: crea valores nuevos, un «sí» a la vida.'
+- kind: chain
+  title: El hilo central
+  steps:
+  - h: Dios ha muerto
+    t: Los valores tradicionales pierden su fundamento.
+  - h: Nihilismo
+    t: 'Nada parece valer: el peligro del «último hombre», cómodo y sin aspiraciones.'
+  - h: Superhombre
+    t: Quien crea sus propios valores y afirma la vida.
+- kind: notes
+  title: Dos ideas que lo sostienen
+  items:
+  - h: Voluntad de poder
+    t: El impulso de todo lo vivo a crecer, superarse y dar forma.
+  - h: Eterno retorno
+    t: 'La prueba: ¿querrías vivir esta misma vida otra vez, infinitas veces?'
+naufragios:
+- kind: chain
+  title: La ruta
+  steps:
+  - h: '1527'
+    t: Sale de Sanlúcar la expedición de Pánfilo de Narváez, unos 600 hombres.
+  - h: '1528'
+    t: Desembarco en Florida; la expedición se separa de los barcos y construye balsas.
+  - h: '1528'
+    t: Naufragio en la isla del Mal Hado, en la costa de Texas.
+  - h: 1528–1535
+    t: Años como esclavo, comerciante y curandero entre pueblos indígenas.
+  - h: '1536'
+    t: Cuatro supervivientes llegan a Sinaloa y encuentran a otros españoles.
+  - h: '1542'
+    t: Publica su relación en Zamora.
+rebelion-en-la-granja:
+- kind: pairs
+  title: Quién es quién
+  rows:
+  - - Viejo Mayor
+    - 'Marx y Lenin: el sueño fundador'
+  - - Napoleón
+    - Stalin
+  - - Bola de Nieve
+    - Trotski, expulsado y convertido en chivo expiatorio
+  - - Chillón
+    - La propaganda del régimen
+  - - Boxeador
+    - La clase obrera leal, explotada hasta el final
+  - - Los perros
+    - La policía secreta
+  - - Moisés, el cuervo
+    - La Iglesia
+  - - Sr. Jones
+    - El zar
+  - - Sr. Frederick
+    - Hitler y el pacto de 1939
+- kind: chain
+  title: Cómo cambia el último mandamiento
+  steps:
+  - h: Al principio
+    t: «Todos los animales son iguales».
+  - h: Al final
+    t: «…pero algunos animales son más iguales que otros».
+el-manifiesto-comunista:
+- kind: chain
+  title: El argumento
+  steps:
+  - h: La historia es lucha de clases
+    t: Cada sociedad se explica por el enfrentamiento entre opresores y oprimidos.
+  - h: La burguesía
+    t: Ha revolucionado la producción y creado el mercado mundial, pero no controla las crisis que desata.
+  - h: El proletariado
+    t: La industria concentra a los obreros, que solo tienen su fuerza de trabajo. La burguesía produce
+      «sus propios sepultureros».
+  - h: Revolución
+    t: El proletariado toma el poder político y suprime la propiedad privada burguesa de los medios de
+      producción.
+  - h: Sociedad sin clases
+    t: Desaparecidas las clases, el poder público pierde su carácter político.
+- kind: pairs
+  title: Las cuatro partes
+  rows:
+  - - I
+    - 'Burgueses y proletarios: la historia como lucha de clases.'
+  - - II
+    - 'Proletarios y comunistas: el programa y la respuesta a las objeciones.'
+  - - III
+    - 'Literatura socialista y comunista: crítica de los otros socialismos de la época.'
+  - - IV
+    - 'Actitud ante los partidos de oposición: táctica y llamamiento final.'

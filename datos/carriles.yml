@@ -1,0 +1,34 @@
+carriles:
+- id: filosofia
+  label: Filosofía y pensamiento
+- id: historia
+  label: Historia, crónica y ensayo
+- id: literatura
+  label: Literatura universal
+- id: terror
+  label: Terror y misterio
+- id: cf
+  label: Ciencia ficción y fantasía
+- id: poesia
+  label: Poesía
+- id: comic
+  label: Cómic e ilustración
+hilos:
+- id: poder
+  label: Poder y revolución
+- id: fin
+  label: Fin del mundo
+- id: familia
+  label: Familia y linaje
+- id: viaje
+  label: Viajes y huidas
+- id: otro
+  label: El encuentro con el otro
+- id: mar
+  label: El mar y el agua
+- id: sobrenatural
+  label: Lo sobrenatural
+- id: culpa
+  label: Culpa y locura
+- id: dios
+  label: Dios, fe y valores

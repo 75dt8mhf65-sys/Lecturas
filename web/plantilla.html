@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapa de lecturas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+/* Plano de metro: un carril por tipo de lectura, una estación por libro;
+   el eje del tiempo alterna entre tu calendario y la historia. */
+:root {
+  color-scheme: light;
+  --paper: #f4f5f2;
+  --card: #fbfbf9;
+  --ink: #17191c;
+  --ink-2: #4c5157;
+  --ink-3: #6f747b;
+  --rule: #d9dbd6;
+  --bar: #5b6470;
+  --focus: #2a78d6;
+  --l-filosofia: #2a78d6;
+  --l-historia: #eb6834;
+  --l-literatura: #1baf7a;
+  --l-terror: #eda100;
+  --l-cf: #e87ba4;
+  --l-poesia: #008300;
+  --l-comic: #6250d6;
+  --font-display: "Overpass", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #16181b;
+    --card: #1c1f23;
+    --ink: #eceeea;
+    --ink-2: #b9bdc2;
+    --ink-3: #8f959c;
+    --rule: #30343a;
+    --bar: #9aa3ad;
+    --focus: #3987e5;
+    --l-filosofia: #3987e5;
+    --l-historia: #d95926;
+    --l-literatura: #199e70;
+    --l-terror: #c98500;
+    --l-cf: #d55181;
+    --l-poesia: #0ca30c;
+    --l-comic: #9085e9;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #16181b;
+  --card: #1c1f23;
+  --ink: #eceeea;
+  --ink-2: #b9bdc2;
+  --ink-3: #8f959c;
+  --rule: #30343a;
+  --bar: #9aa3ad;
+  --focus: #3987e5;
+  --l-filosofia: #3987e5;
+  --l-historia: #d95926;
+  --l-literatura: #199e70;
+  --l-terror: #c98500;
+  --l-cf: #d55181;
+  --l-poesia: #0ca30c;
+  --l-comic: #9085e9;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font: 16px/1.5 var(--font-display);
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 28px clamp(16px, 3vw, 32px) 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* cabecera */
+.top { display: flex; flex-direction: column; gap: 6px; }
+.kicker {
+  font-size: 12px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+h1 {
+  margin: 0; font-weight: 800; font-size: clamp(32px, 4.4vw, 46px);
+  line-height: 1.04; letter-spacing: -0.02em; text-wrap: balance;
+}
+.lede {
+  margin: 4px 0 0; max-width: 64ch;
+  font: 18px/1.5 var(--font-body); color: var(--ink-2);
+}
+.facts { display: flex; flex-wrap: wrap; gap: 10px 32px; margin: 12px 0 0; }
+.facts div { display: flex; flex-direction: column; }
+.facts dt { font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.facts dd { margin: 0; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.facts dd small { font-size: 13px; font-weight: 400; color: var(--ink-3); margin-left: 4px; }
+
+.card { background: var(--card); border: 1px solid var(--rule); border-radius: 10px; }
+.card-pad { padding: 18px 20px 20px; }
+h2 { margin: 0 0 12px; font-size: 19px; font-weight: 800; letter-spacing: -0.01em; text-wrap: balance; }
+
+/* mapa */
+.map-card { padding: 16px 0 12px; display: flex; flex-direction: column; gap: 12px; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding: 0 20px; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 8px; padding: 3px; gap: 3px; background: var(--paper); }
+.seg button {
+  border: 0; background: transparent; padding: 7px 14px; border-radius: 6px;
+  font-size: 14px; font-weight: 700; color: var(--ink-2); cursor: pointer;
+}
+.seg button[aria-checked="true"] { background: var(--ink); color: var(--paper); }
+.toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); cursor: pointer; }
+.toggle input { width: 16px; height: 16px; accent-color: var(--ink); }
+
+.ideas { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 20px; }
+.ideas-label { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); align-self: center; margin-right: 4px; }
+.chip {
+  border: 1px solid var(--rule); background: transparent; border-radius: 999px;
+  padding: 5px 12px 4px; font-size: 13.5px; color: var(--ink-2); cursor: pointer;
+}
+.chip:hover { border-color: var(--ink-3); color: var(--ink); }
+.chip .n { color: var(--ink-3); margin-left: 6px; font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.chip[aria-pressed="true"] .n { color: var(--paper); opacity: .7; }
+.thread-caption { margin: 0; padding: 0 20px; min-height: 1.5em; font: 15px/1.5 var(--font-body); color: var(--ink-2); max-width: 110ch; }
+.thread-caption b { font-family: var(--font-display); color: var(--ink); }
+
+.map-scroll { overflow-x: auto; }
+#map { display: block; width: 100%; min-width: 920px; height: auto; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 0 20px; font-size: 13px; color: var(--ink-3); align-items: center; }
+.legend svg { vertical-align: middle; margin-right: 6px; }
+.legend .axis-note { margin-left: auto; }
+
+/* elementos del svg */
+.lane-sep { stroke: var(--rule); stroke-width: 1; }
+.lane-name { font: 700 13px var(--font-display); fill: var(--ink); }
+.lane-count { font: 400 11.5px var(--font-display); fill: var(--ink-3); }
+.ax { font: 600 11px var(--font-display); fill: var(--ink-3); }
+.ax-year { font: 800 12.5px var(--font-display); fill: var(--ink-2); }
+.grid { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 2 4; }
+.grid-strong { stroke: var(--rule); stroke-width: 1.5; }
+.pend-zone { fill: var(--paper); }
+.track { stroke-width: 5; stroke-linecap: round; }
+.conn { stroke-width: 2; }
+.layer { transition: opacity .2s ease; }
+.layer.fading { opacity: 0; }
+.st { cursor: pointer; transition: transform .65s cubic-bezier(.6,.05,.25,1), opacity .25s ease; }
+.st:focus { outline: none; }
+.st .halo { fill: var(--card); stroke: transparent; stroke-width: 2; }
+.st .core { fill: var(--card); }
+.st .ring { fill: none; stroke-width: 1.6; }
+.st.ghost .dot { fill: var(--card); stroke-width: 1.8; stroke-dasharray: 3 2.4; }
+.st:hover .halo { stroke: var(--ink-3); }
+.st.kin .halo { stroke: var(--ink-2); stroke-dasharray: 2 2; }
+.st:focus-visible .halo { stroke: var(--focus); stroke-width: 2.5; }
+.st.sel .halo { stroke: var(--ink); stroke-width: 2.5; }
+.st.dim { opacity: .14; }
+.st.hidden { opacity: 0; pointer-events: none; }
+.no-anim .st { transition: none; }
+.lbl {
+  font: 600 11.5px var(--font-display); fill: var(--ink-2);
+  paint-order: stroke; stroke: var(--card); stroke-width: 3.5px; stroke-linejoin: round;
+  pointer-events: none; transition: opacity .2s ease;
+}
+.lbl.dim { opacity: .12; }
+.thread { fill: none; stroke: var(--ink); stroke-width: 2; stroke-dasharray: 6 5; }
+.tracks-dim .track, .tracks-dim .conn { opacity: .22; }
+
+/* paneles inferiores */
+.lower { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 900px) { .lower { grid-template-columns: 1fr; } }
+.years { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px 22px; }
+.year h3 { margin: 0 0 6px; font-size: 15px; font-weight: 800; display: flex; align-items: baseline; gap: 8px; border-bottom: 1px solid var(--rule); padding-bottom: 6px; }
+.year h3 span { font-weight: 400; font-size: 13px; color: var(--ink-3); }
+.rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.row {
+  width: 100%; display: grid; grid-template-columns: 30px 10px minmax(0, 1fr) auto; gap: 8px;
+  align-items: baseline; text-align: left; background: transparent; border: 0; border-radius: 6px;
+  padding: 5px 6px; cursor: pointer;
+}
+.row:hover { background: var(--paper); }
+.row .m { font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.row .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); align-self: center; }
+.row .dot.hollow { background: transparent; border: 1.6px dashed var(--c); }
+.row .t { font-size: 14px; font-weight: 600; line-height: 1.3; min-width: 0; }
+.row .t small { display: block; font-weight: 400; font-size: 12.5px; color: var(--ink-3); }
+.stars { font-size: 12px; letter-spacing: 1px; color: var(--ink-2); white-space: nowrap; }
+.stars.none { color: var(--ink-3); letter-spacing: 0; }
+
+.cov h3 { margin: 4px 0 10px; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); }
+.cov h3 + .bars { margin-bottom: 18px; }
+.bars { display: flex; flex-direction: column; gap: 7px; }
+.bar-row { display: grid; grid-template-columns: 112px minmax(0, 1fr) 28px; gap: 10px; align-items: center; font-size: 13.5px; border-radius: 4px; }
+.bar-row .lab { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-row .trk { height: 12px; position: relative; }
+.bar-row .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--bar); border-radius: 0 4px 4px 0; min-width: 2px; }
+.bar-row .fill.zero { background: transparent; border-left: 2px solid var(--rule); border-radius: 0; }
+.bar-row .val { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.cov-note { margin: 2px 0 0; font: 14px/1.5 var(--font-body); color: var(--ink-2); }
+
+.notes { font: 14px/1.6 var(--font-body); color: var(--ink-3); max-width: 80ch; }
+.notes h2 { font-family: var(--font-display); font-size: 15px; color: var(--ink-2); margin-bottom: 6px; }
+.notes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+
+/* ficha lateral */
+.drawer {
+  position: fixed; top: 0; right: 0; height: 100%; width: min(440px, 100%);
+  background: var(--card); border-left: 1px solid var(--rule);
+  box-shadow: -14px 0 40px rgba(0,0,0,.14);
+  transform: translateX(105%); transition: transform .3s ease, visibility 0s linear .3s;
+  visibility: hidden; overflow-y: auto; z-index: 20; padding: 18px 24px 40px;
+}
+.drawer.open { transform: none; visibility: visible; transition: transform .3s ease; }
+.d-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.d-lane { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.d-lane i { width: 22px; height: 6px; border-radius: 3px; background: var(--c); display: inline-block; }
+.d-close { border: 1px solid var(--rule); background: transparent; border-radius: 6px; padding: 5px 10px; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--ink-2); }
+.d-close:hover { color: var(--ink); border-color: var(--ink-3); }
+.d-head { display: flex; gap: 16px; align-items: flex-start; margin-top: 16px; }
+.d-head-text { flex: 1; min-width: 0; }
+.d-cover { width: 92px; height: auto; border-radius: 4px; border: 1px solid var(--rule); box-shadow: 0 4px 14px rgba(0,0,0,.14); flex: none; }
+.notes a { color: inherit; }
+.d-title { margin: 0 0 2px; font-size: 27px; font-weight: 800; line-height: 1.12; letter-spacing: -0.015em; text-wrap: balance; }
+.d-series { font-size: 13px; font-weight: 700; color: var(--ink-3); letter-spacing: .02em; }
+.d-author { margin: 4px 0 0; font: italic 18px/1.4 var(--font-body); color: var(--ink-2); }
+.d-meta { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13.5px; color: var(--ink-2); }
+.d-meta b { color: var(--ink); font-weight: 700; }
+.d-flag { margin: 12px 0 0; font-size: 13px; color: var(--ink-2); background: var(--paper); border-radius: 6px; padding: 8px 10px; }
+.d-sec { margin-top: 22px; }
+.d-sec h3 { margin: 0 0 8px; font-size: 12px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); display: flex; gap: 8px; align-items: baseline; }
+.d-sec h3 span { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.d-review { margin: 0; font: italic 19px/1.45 var(--font-body); color: var(--ink); border-left: 3px solid var(--c); padding-left: 12px; }
+.d-text { margin: 0; font: 16.5px/1.55 var(--font-body); color: var(--ink); }
+.empty { margin: 0; font: italic 15.5px/1.5 var(--font-body); color: var(--ink-3); }
+.d-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.d-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.d-links button { background: transparent; border: 0; padding: 0; cursor: pointer; text-align: left; font-weight: 700; color: var(--ink); text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }
+.d-links button:hover { text-decoration-color: var(--ink); }
+.d-links p { margin: 2px 0 0; font: 15px/1.5 var(--font-body); color: var(--ink-2); }
+
+.dg { display: flex; flex-direction: column; gap: 16px; }
+.dg h4 { margin: 0 0 8px; font-size: 14px; font-weight: 800; }
+.dg-chain { display: flex; flex-direction: column; }
+.dg-step { border: 1px solid var(--rule); border-left: 3px solid var(--c); border-radius: 6px; padding: 8px 11px; background: var(--card); }
+.dg-step b { display: block; font-size: 14px; }
+.dg-step span { font: 14.5px/1.45 var(--font-body); color: var(--ink-2); }
+.dg-arrow { text-align: center; color: var(--ink-3); font-size: 14px; line-height: 1; padding: 4px 0; }
+.dg-notes { display: grid; gap: 8px; }
+.dg-pairs { width: 100%; border-collapse: collapse; font-size: 14px; }
+.dg-pairs td { padding: 6px 4px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.dg-pairs td:first-child { font-weight: 700; white-space: nowrap; padding-right: 12px; }
+.dg-pairs td:last-child { font-family: var(--font-body); color: var(--ink-2); }
+
+/* tooltip */
+.tip {
+  position: fixed; z-index: 30; pointer-events: none; max-width: 290px;
+  background: var(--ink); color: var(--paper); border-radius: 7px; padding: 8px 11px;
+  font-size: 13px; line-height: 1.4; opacity: 0; transition: opacity .12s ease;
+  box-shadow: 0 6px 20px rgba(0,0,0,.18);
+}
+.tip.show { opacity: 1; }
+.tip b { display: block; font-size: 14px; }
+.tip .tm { opacity: .78; }
+
+@media (prefers-reduced-motion: reduce) {
+  .st, .layer, .drawer, .lbl, .tip { transition: none !important; }
+}
+@media (max-width: 520px) {
+  .legend .axis-note { margin-left: 0; }
+  .bar-row { grid-template-columns: 96px minmax(0, 1fr) 26px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="kicker" id="kicker"></div>
+    <h1>Mapa de lecturas</h1>
+    <p class="lede" id="lede"></p>
+    <dl class="facts" id="facts"></dl>
+  </header>
+
+  <section class="card map-card" aria-label="Mapa">
+    <div class="controls">
+      <div class="seg" role="radiogroup" aria-label="Eje del tiempo">
+        <button type="button" id="mode-read" role="radio" aria-checked="true" data-mode="read">Cuándo lo leí</button>
+        <button type="button" id="mode-written" role="radio" aria-checked="false" data-mode="written">Cuándo se escribió</button>
+      </div>
+      <label class="toggle" for="showPending"><input type="checkbox" id="showPending" checked> Mostrar pendientes</label>
+    </div>
+    <div class="ideas" id="ideas" role="group" aria-label="Hilos de ideas"><span class="ideas-label">Hilos</span></div>
+    <p class="thread-caption" id="caption"></p>
+    <div class="map-scroll"><svg id="map" xmlns="http://www.w3.org/2000/svg" aria-label="Mapa de lecturas por carriles"></svg></div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <div class="lower">
+    <section class="card card-pad" aria-labelledby="h-years">
+      <h2 id="h-years">Año a año</h2>
+      <div class="years" id="years"></div>
+    </section>
+    <section class="card card-pad cov" aria-labelledby="h-cov">
+      <h2 id="h-cov">Cobertura</h2>
+      <h3>Cuándo se escribió lo que has leído</h3>
+      <div class="bars" id="bars-era"></div>
+      <h3>Lengua original</h3>
+      <div class="bars" id="bars-lang"></div>
+      <p class="cov-note" id="cov-note"></p>
+    </section>
+  </div>
+
+  <section class="notes" aria-labelledby="h-notes">
+    <h2 id="h-notes">Sobre estos datos</h2>
+    <ul id="notes"></ul>
+  </section>
+</div>
+
+<aside class="drawer" id="drawer" role="dialog" aria-modal="false" aria-labelledby="d-title" aria-hidden="true"></aside>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+const DATA = /*DATA*/;
+const LANES = DATA.lanes, IDEAS = DATA.ideas, BOOKS = DATA.books, DIAGRAMS = DATA.diagrams;
+const byId = Object.fromEntries(BOOKS.map(b => [b.id, b]));
+const laneIdx = Object.fromEntries(LANES.map((l, i) => [l.id, i]));
+const laneById = Object.fromEntries(LANES.map(l => [l.id, l]));
+const ideaById = Object.fromEntries(IDEAS.map(i => [i.id, i]));
+const MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const MES_LARGO = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const INICIAL = ['E', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+const SVGNS = 'http://www.w3.org/2000/svg';
+
+const state = { mode: 'read', idea: null, showPending: true, selected: null };
+
+const read = BOOKS.filter(b => b.status === 'leido');
+const pending = BOOKS.filter(b => b.status === 'pendiente');
+const readYears = [...new Set(read.map(b => +b.read.slice(0, 4)))].sort();
+const Y0 = readYears[0], Y1 = readYears[readYears.length - 1];
+
+/* ---------- utilidades ---------- */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const laneColor = id => `var(--l-${id})`;
+function el(tag, attrs = {}, parent) {
+  const n = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  if (parent) parent.appendChild(n);
+  return n;
+}
+function readLabel(b, long) {
+  if (!b.read) return 'Por leer';
+  const [y, m] = b.read.split('-').map(Number);
+  return `${long ? MES_LARGO[m - 1] : MES[m - 1]} ${y}`;
+}
+function starsHTML(r) {
+  if (!r) return '<span class="stars none">sin nota</span>';
+  return `<span class="stars" aria-label="${r} de 5">${'★'.repeat(r)}${'☆'.repeat(5 - r)}</span>`;
+}
+function shortTitle(t) {
+  let s = t.split(' (')[0].split(':')[0];
+  return s.length > 23 ? s.slice(0, 21).trimEnd() + '…' : s;
+}
+function visible(b) { return b.status === 'leido' || state.showPending; }
+function sortKey(b) {
+  return state.mode === 'written' ? (b.year ?? 9999) : (b.read ? +b.read.replace('-', '') : 999999);
+}
+
+/* ---------- cabecera ---------- */
+(function header() {
+  document.getElementById('kicker').textContent = `Lecturas desde ${Y0} · ${LANES.length} carriles`;
+  const first = read.map(b => b.read).sort()[0];
+  const last = read.map(b => b.read).sort().slice(-1)[0];
+  const oldest = [...read].sort((a, b) => a.year - b.year)[0];
+  const newest = [...read].sort((a, b) => b.year - a.year || (b.read > a.read ? 1 : -1))[0];
+  const [fy, fm] = first.split('-').map(Number), [ly, lm] = last.split('-').map(Number);
+  document.getElementById('lede').innerHTML =
+    `${read.length} libros leídos entre ${MES_LARGO[fm - 1]} de ${fy} y ${MES_LARGO[lm - 1]} de ${ly}. ` +
+    `El más antiguo es «${esc(oldest.title)}» (${esc(oldest.year_label)}); el más reciente, «${esc(newest.title)}» (${esc(newest.year_label)}). ` +
+    `Otros ${pending.length} esperan en la lista de pendientes.`;
+  const rated = read.filter(b => b.rating > 0);
+  const avg = rated.reduce((s, b) => s + b.rating, 0) / rated.length;
+  const pages = read.reduce((s, b) => s + (b.pages || 0), 0);
+  const reviewed = read.filter(b => b.review).length;
+  const facts = [
+    ['Leídos', read.length, ''],
+    ['Por leer', pending.length, ''],
+    ['Páginas', '≈ ' + pages.toLocaleString('es-ES', { useGrouping: 'always' }), ''],
+    ['Nota media', avg.toLocaleString('es-ES', { maximumFractionDigits: 1 }), `${rated.length} puntuados`],
+    ['Con reseña', reviewed, `de ${read.length}`],
+  ];
+  document.getElementById('facts').innerHTML = facts.map(([k, v, s]) =>
+    `<div><dt>${k}</dt><dd>${v}${s ? `<small>${s}</small>` : ''}</dd></div>`).join('');
+})();
+
+/* ---------- geometría del mapa ---------- */
+const W = 1200, L = 226, R = 24, T = 50, LH = 90, B = 16, PZ = 112;
+const H = T + LANES.length * LH + B;
+const svg = document.getElementById('map');
+svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+const f = y => Math.log10(2030 - y);
+const FMAX = f(-1000), FMIN = f(2026);
+function plotRight() { return W - R - (state.mode === 'read' && state.showPending ? PZ : 0); }
+function monthW() { return (plotRight() - L) / ((Y1 - Y0 + 1) * 12); }
+function xRead(ym) {
+  const [y, m] = ym.split('-').map(Number);
+  return L + ((y - Y0) * 12 + (m - 1) + 0.5) * monthW();
+}
+function xWritten(y) { return L + (FMAX - f(y)) / (FMAX - FMIN) * (W - R - L); }
+function targetX(b) {
+  if (state.mode === 'read') return b.read ? xRead(b.read) : W - R - PZ / 2;
+  return xWritten(b.year ?? 2026);
+}
+const radius = b => (b.rating === 5 ? 9 : 7);
+const laneCY = id => T + laneIdx[id] * LH + LH / 2;
+
+function layout() {
+  const pos = {};
+  const dxs = [0]; for (let k = 1; k < 50; k++) dxs.push(k * 5, -k * 5);
+  for (const lane of LANES) {
+    const cy = laneCY(lane.id);
+    const items = BOOKS.filter(b => b.lane === lane.id && visible(b))
+      .map(b => ({ b, tx: targetX(b), r: radius(b) }))
+      .sort((a, c) => a.tx - c.tx || a.b.title.localeCompare(c.b.title));
+    const placed = [];
+    for (const it of items) {
+      let spot = null;
+      for (const dx of dxs) {
+        const x = it.tx + dx;
+        if (x - it.r < L + 6 || x + it.r > W - 6) continue;
+        for (const k of [0, -1, 1, -2, 2]) {
+          const y = cy + k * 17;
+          if (placed.every(p => Math.hypot(p.x - x, p.y - y) >= p.r + it.r + 3)) { spot = { x, y }; break; }
+        }
+        if (spot) break;
+      }
+      spot = spot || { x: it.tx, y: cy };
+      placed.push({ ...spot, r: it.r });
+      pos[it.b.id] = { ...spot, cy, r: it.r };
+    }
+  }
+  return pos;
+}
+
+/* capas */
+const gStatic = el('g', {}, svg);
+const gAxis = el('g', { class: 'layer' }, svg);
+const gTracks = el('g', { class: 'layer' }, svg);
+const gThread = el('g', { class: 'layer' }, svg);
+const gStations = el('g', {}, svg);
+const gLabels = el('g', { class: 'layer' }, svg);
+
+/* carriles (fijos) */
+function drawStatic() {
+  gStatic.innerHTML = '';
+  LANES.forEach((lane, i) => {
+    const top = T + i * LH;
+    if (i > 0) el('line', { class: 'lane-sep', x1: 12, x2: W - 8, y1: top, y2: top }, gStatic);
+    const cy = top + LH / 2;
+    el('rect', { x: 16, y: cy - 16, width: 20, height: 6, rx: 3, fill: laneColor(lane.id) }, gStatic);
+    const name = el('text', { class: 'lane-name', x: 44, y: cy - 9 }, gStatic);
+    name.textContent = lane.label;
+    const nRead = read.filter(b => b.lane === lane.id).length;
+    const nPend = pending.filter(b => b.lane === lane.id).length;
+    const cnt = el('text', { class: 'lane-count', x: 44, y: cy + 8 }, gStatic);
+    cnt.textContent = `${nRead} ${nRead === 1 ? 'leído' : 'leídos'}` + (nPend ? ` · ${nPend} por leer` : '');
+  });
+}
+
+function drawAxis() {
+  gAxis.innerHTML = '';
+  const yTop = T - 6, yBot = H - B;
+  if (state.mode === 'read') {
+    const mw = monthW(), n = (Y1 - Y0 + 1) * 12;
+    for (let i = 0; i < n; i++) {
+      const x = L + (i + 0.5) * mw, m = i % 12;
+      const t = el('text', { class: 'ax', x, y: T - 12, 'text-anchor': 'middle' }, gAxis);
+      t.textContent = INICIAL[m];
+      if (m === 0) {
+        const xb = L + i * mw;
+        el('line', { class: i === 0 ? 'grid' : 'grid-strong', x1: xb, x2: xb, y1: T - 40, y2: yBot }, gAxis);
+        const yl = el('text', { class: 'ax-year', x: xb + 6, y: T - 30 }, gAxis);
+        yl.textContent = Y0 + i / 12;
+      } else if (m % 3 === 0) {
+        const xb = L + i * mw;
+        el('line', { class: 'grid', x1: xb, x2: xb, y1: yTop, y2: yBot }, gAxis);
+      }
+    }
+    if (state.showPending) {
+      const x0 = W - R - PZ + 10;
+      el('rect', { class: 'pend-zone', x: x0, y: T - 2, width: PZ - 10, height: yBot - T + 2, rx: 8 }, gAxis);
+      const t = el('text', { class: 'ax-year', x: x0 + (PZ - 10) / 2, y: T - 30, 'text-anchor': 'middle' }, gAxis);
+      t.textContent = 'Por leer';
+    }
+  } else {
+    const ticks = [[-800, '800 a. C.'], [1000, '1000'], [1500, '1500'], [1800, '1800'], [1900, '1900'], [1950, '1950'], [2000, '2000'], [2020, '2020']];
+    for (const [y, lab] of ticks) {
+      const x = xWritten(y);
+      el('line', { class: 'grid', x1: x, x2: x, y1: T - 20, y2: yBot }, gAxis);
+      const t = el('text', { class: 'ax-year', x, y: T - 28, 'text-anchor': 'middle' }, gAxis);
+      t.textContent = lab;
+    }
+  }
+}
+
+/* estaciones (persistentes) */
+const stEls = {};
+function buildStations() {
+  for (const b of BOOKS) {
+    const g = el('g', { class: 'st' + (b.status === 'pendiente' ? ' ghost' : ''), tabindex: 0, role: 'button', 'data-id': b.id }, gStations);
+    g.setAttribute('aria-label', `${b.title}, ${b.author}. ${b.status === 'pendiente' ? 'Por leer' : 'Leído en ' + readLabel(b, true)}`);
+    const r = radius(b);
+    el('circle', { class: 'halo', r: r + 3 + (b.reread ? 3 : 0) }, g);
+    if (b.reread) el('circle', { class: 'ring', r: r + 3, stroke: laneColor(b.lane) }, g);
+    const dot = el('circle', { class: 'dot', r, fill: laneColor(b.lane) }, g);
+    if (b.status === 'pendiente') dot.setAttribute('stroke', laneColor(b.lane));
+    if (b.rating === 5) el('circle', { class: 'core', r: 2.8 }, g);
+    g.addEventListener('mouseenter', () => hover(b, g));
+    g.addEventListener('mouseleave', unhover);
+    g.addEventListener('focus', () => hover(b, g));
+    g.addEventListener('blur', unhover);
+    g.addEventListener('click', () => openDrawer(b.id));
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDrawer(b.id); } });
+    stEls[b.id] = g;
+  }
+}
+
+let POS = {};
+function placeStations() {
+  POS = layout();
+  for (const b of BOOKS) {
+    const g = stEls[b.id], p = POS[b.id];
+    if (p) {
+      g.style.transform = `translate(${p.x}px, ${p.y}px)`;
+      g.classList.remove('hidden');
+      g.removeAttribute('aria-hidden');
+      g.setAttribute('tabindex', 0);
+    } else {
+      g.classList.add('hidden');
+      g.setAttribute('aria-hidden', 'true');
+      g.setAttribute('tabindex', -1);
+    }
+  }
+}
+
+let OBSTACLES = [];
+function drawTracks() {
+  gTracks.innerHTML = '';
+  OBSTACLES = [];
+  for (const lane of LANES) {
+    const cy = laneCY(lane.id);
+    const ps = read.filter(b => b.lane === lane.id).map(b => POS[b.id]).filter(Boolean);
+    if (!ps.length) continue;
+    let x1 = Math.min(...ps.map(p => p.x)), x2 = Math.max(...ps.map(p => p.x));
+    if (x2 - x1 < 20) { x1 -= 10; x2 += 10; }
+    el('line', { class: 'track', x1, x2, y1: cy, y2: cy, stroke: laneColor(lane.id) }, gTracks);
+    OBSTACLES.push({ x: x1 - 3, y: cy - 4, w: x2 - x1 + 6, h: 8 });
+    for (const b of read.filter(b => b.lane === lane.id)) {
+      const p = POS[b.id];
+      if (p && Math.abs(p.y - cy) > 1) {
+        el('line', { class: 'conn', x1: p.x, x2: p.x, y1: cy, y2: p.y, stroke: laneColor(lane.id) }, gTracks);
+        OBSTACLES.push({ x: p.x - 2, y: Math.min(cy, p.y), w: 4, h: Math.abs(p.y - cy) });
+      }
+    }
+  }
+}
+
+function drawLabels() {
+  gLabels.innerHTML = '';
+  const circles = Object.values(POS);
+  const boxes = [...OBSTACLES];
+  const hit = (bx) => boxes.some(o => bx.x < o.x + o.w && bx.x + bx.w > o.x && bx.y < o.y + o.h && bx.y + bx.h > o.y)
+    || circles.some(c => {
+      const nx = Math.max(bx.x, Math.min(c.x, bx.x + bx.w)), ny = Math.max(bx.y, Math.min(c.y, bx.y + bx.h));
+      return Math.hypot(nx - c.x, ny - c.y) < c.r + 3;
+    });
+  const order = BOOKS.filter(b => POS[b.id]).sort((a, b) => (b.rating - a.rating) || (a.status > b.status ? 1 : -1));
+  for (const b of order) {
+    const p = POS[b.id], txt = shortTitle(b.title), w = txt.length * 6.5, h = 12;
+    const top = T + laneIdx[b.lane] * LH + 3, bot = top + LH - 6;
+    const cands = [[p.x + p.r + 5, p.y - h / 2], [p.x - p.r - 5 - w, p.y - h / 2], [p.x - w / 2, p.y - p.r - 5 - h], [p.x - w / 2, p.y + p.r + 5]];
+    for (const [x, y] of cands) {
+      const bx = { x, y, w, h };
+      if (x < L + 2 || x + w > W - 4 || y < top || y + h > bot) continue;
+      if (hit(bx)) continue;
+      boxes.push(bx);
+      const t = el('text', { class: 'lbl', x, y: y + h - 2, 'data-id': b.id }, gLabels);
+      t.textContent = txt;
+      break;
+    }
+  }
+}
+
+function smoothPath(pts) {
+  let d = `M${pts[0].x},${pts[0].y}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    d += ` C${p1.x + (p2.x - p0.x) / 6},${p1.y + (p2.y - p0.y) / 6} ${p2.x - (p3.x - p1.x) / 6},${p2.y - (p3.y - p1.y) / 6} ${p2.x},${p2.y}`;
+  }
+  return d;
+}
+
+function inIdea(b) { return state.idea && b.ideas.includes(state.idea); }
+function applyIdea() {
+  gThread.innerHTML = '';
+  const cap = document.getElementById('caption');
+  document.querySelectorAll('#ideas .chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.idea === state.idea)));
+  if (!state.idea) {
+    for (const b of BOOKS) stEls[b.id].classList.remove('dim');
+    gLabels.querySelectorAll('.lbl').forEach(t => t.classList.remove('dim'));
+    svg.classList.remove('tracks-dim');
+    cap.textContent = 'Elige un hilo para ver qué lecturas de distintos carriles comparten una misma idea.';
+    return;
+  }
+  const members = BOOKS.filter(b => POS[b.id] && inIdea(b));
+  for (const b of BOOKS) stEls[b.id].classList.toggle('dim', !inIdea(b));
+  gLabels.querySelectorAll('.lbl').forEach(t => t.classList.toggle('dim', !inIdea(byId[t.dataset.id])));
+  svg.classList.add('tracks-dim');
+  const pts = members.map(b => POS[b.id]).sort((a, b) => a.x - b.x);
+  if (pts.length > 1) el('path', { class: 'thread', d: smoothPath(pts) }, gThread);
+  const lanes = new Set(members.map(b => b.lane)).size;
+  const seq = [...members].sort((a, b) => sortKey(a) - sortKey(b))
+    .map(b => `${esc(shortTitle(b.title))} <span style="color:var(--ink-3)">(${state.mode === 'written' ? esc(b.year_label) : esc(b.read ? readLabel(b) : 'por leer')})</span>`);
+  cap.innerHTML = `<b>${esc(ideaById[state.idea].label)}</b> · ${members.length} lecturas en ${lanes} ${lanes === 1 ? 'carril' : 'carriles'}: ${seq.join(' → ')}`;
+}
+
+/* redibujo con transición */
+let redrawTimer;
+function render(first) {
+  placeStations();
+  const layers = [gAxis, gTracks, gThread, gLabels];
+  const finish = () => { drawAxis(); drawTracks(); drawLabels(); applyIdea(); };
+  if (first) { finish(); return; }
+  layers.forEach(g => g.classList.add('fading'));
+  clearTimeout(redrawTimer);
+  redrawTimer = setTimeout(() => {
+    finish();
+    setTimeout(() => layers.forEach(g => g.classList.remove('fading')), 480);
+  }, 200);
+}
+
+/* tooltip y parentesco */
+const tip = document.getElementById('tip');
+function hover(b, g) {
+  for (const o of BOOKS) if (o.id !== b.id && o.author === b.author) stEls[o.id].classList.add('kin');
+  const same = BOOKS.filter(o => o.id !== b.id && o.author === b.author && POS[o.id]).length;
+  tip.innerHTML = `<b>${esc(b.title)}</b>${esc(b.author)}<br><span class="tm">Escrito: ${esc(b.year_label ?? '¿?')} · ${b.read ? 'Leído: ' + readLabel(b) : 'Por leer'}${b.pages ? ' · ' + b.pages + ' págs.' : ''}${b.rating ? ' · ' + '★'.repeat(b.rating) : ''}${same ? `<br>${same} más del mismo autor, con borde punteado` : ''}</span>`;
+  const r = g.getBoundingClientRect();
+  tip.classList.add('show');
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  let x = r.left + r.width / 2 - tw / 2, y = r.top - th - 10;
+  if (y < 8) y = r.bottom + 10;
+  x = Math.max(8, Math.min(x, window.innerWidth - tw - 8));
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+}
+function unhover() {
+  tip.classList.remove('show');
+  document.querySelectorAll('.st.kin').forEach(n => n.classList.remove('kin'));
+}
+
+/* ficha */
+const drawer = document.getElementById('drawer');
+let lastFocus = null;
+function diagramHTML(key, lane) {
+  const blocks = DIAGRAMS[key];
+  if (!blocks) return '';
+  return `<div class="dg" style="--c:${laneColor(lane)}">` + blocks.map(bl => {
+    if (bl.kind === 'chain') return `<div><h4>${esc(bl.title)}</h4><div class="dg-chain">` +
+      bl.steps.map(s => `<div class="dg-step"><b>${esc(s.h)}</b><span>${esc(s.t)}</span></div>`).join('<div class="dg-arrow" aria-hidden="true">↓</div>') + '</div></div>';
+    if (bl.kind === 'notes') return `<div><h4>${esc(bl.title)}</h4><div class="dg-notes">` +
+      bl.items.map(s => `<div class="dg-step"><b>${esc(s.h)}</b><span>${esc(s.t)}</span></div>`).join('') + '</div></div>';
+    if (bl.kind === 'pairs') return `<div><h4>${esc(bl.title)}</h4><table class="dg-pairs"><tbody>` +
+      bl.rows.map(([a, c]) => `<tr><td>${esc(a)}</td><td>${esc(c)}</td></tr>`).join('') + '</tbody></table></div>';
+    return '';
+  }).join('') + '</div>';
+}
+function openDrawer(id) {
+  const b = byId[id];
+  if (!b) return;
+  if (!drawer.classList.contains('open')) lastFocus = document.activeElement;
+  if (state.selected) stEls[state.selected].classList.remove('sel');
+  state.selected = id;
+  stEls[id].classList.add('sel');
+  unhover();
+  const lane = laneById[b.lane];
+  const sameAuthor = BOOKS.filter(o => o.id !== b.id && o.author === b.author);
+  const meta = [
+    `<span>Escrito: <b>${esc(b.year_label ?? 'sin dato')}</b></span>`,
+    b.read ? `<span>Leído: <b>${esc(readLabel(b, true))}</b></span>` : '<span><b>Por leer</b></span>',
+    b.reread ? '<span><b>Releído</b></span>' : '',
+    b.pages ? `<span>${b.pages} págs.</span>` : '',
+  ].filter(Boolean).join('');
+  const links = [
+    ...b.links.filter(l => byId[l.to]).map(l => `<li><button type="button" data-open="${l.to}">${esc(byId[l.to].title)}</button><p>${esc(l.text)}</p></li>`),
+    ...sameAuthor.map(o => `<li><button type="button" data-open="${o.id}">${esc(o.title)}</button><p>Del mismo autor · ${o.read ? 'leído en ' + esc(readLabel(o)) : 'por leer'}</p></li>`),
+  ];
+  drawer.style.setProperty('--c', laneColor(b.lane));
+  drawer.innerHTML = `
+    <div class="d-top">
+      <span class="d-lane"><i></i>${esc(lane.label)}</span>
+      <button type="button" class="d-close" id="d-close">Cerrar</button>
+    </div>
+    <div class="d-head">
+      <div class="d-head-text">
+        <h2 class="d-title" id="d-title">${esc(b.title)}</h2>
+        ${b.series ? `<div class="d-series">${esc(b.series)}</div>` : ''}
+        <p class="d-author">${esc(b.author)}</p>
+      </div>
+      ${b.isbn ? `<img class="d-cover" src="https://covers.openlibrary.org/b/isbn/${esc(b.isbn)}-M.jpg?default=false" alt="" loading="lazy" onerror="this.remove()">` : ''}
+    </div>
+    <div class="d-meta">${meta}</div>
+    <div class="d-meta">${b.status === 'leido' ? starsHTML(b.rating) : ''}</div>
+    ${b.status === 'leido' ? `<div class="d-sec"><h3>Reseña</h3>${b.review ? `<p class="d-review">${esc(b.review)}</p>` : '<p class="empty">Todavía sin reseña.</p>'}</div>` : ''}
+    <div class="d-sec"><h3>Contexto <span>· escrito por Claude</span></h3>${b.context ? `<p class="d-text">${esc(b.context)}</p>` : '<p class="empty">Sin nota de contexto.</p>'}</div>
+    ${b.diagram ? `<div class="d-sec"><h3>Esquema <span>· escrito por Claude</span></h3>${diagramHTML(b.diagram, b.lane)}</div>` : ''}
+    ${b.ideas.length ? `<div class="d-sec"><h3>Hilos</h3><div class="d-chips">${b.ideas.map(i => `<button type="button" class="chip" data-idea-go="${i}">${esc(ideaById[i].label)}</button>`).join('')}</div></div>` : ''}
+    ${links.length ? `<div class="d-sec"><h3>Conexiones</h3><ul class="d-links">${links.join('')}</ul></div>` : ''}
+  `;
+  drawer.classList.add('open');
+  drawer.setAttribute('aria-hidden', 'false');
+  drawer.scrollTop = 0;
+  document.getElementById('d-close').addEventListener('click', closeDrawer);
+  drawer.querySelectorAll('[data-open]').forEach(n => n.addEventListener('click', () => openDrawer(n.dataset.open)));
+  drawer.querySelectorAll('[data-idea-go]').forEach(n => n.addEventListener('click', () => { state.idea = n.dataset.ideaGo; applyIdea(); closeDrawer(); }));
+  document.getElementById('d-close').focus({ preventScroll: true });
+}
+function closeDrawer() {
+  drawer.classList.remove('open');
+  drawer.setAttribute('aria-hidden', 'true');
+  if (state.selected) stEls[state.selected].classList.remove('sel');
+  state.selected = null;
+  if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer(); });
+
+/* controles */
+function buildIdeas() {
+  const box = document.getElementById('ideas');
+  box.querySelectorAll('.chip').forEach(n => n.remove());
+  for (const idea of IDEAS) {
+    const n = BOOKS.filter(b => visible(b) && b.ideas.includes(idea.id)).length;
+    const c = document.createElement('button');
+    c.type = 'button'; c.className = 'chip'; c.dataset.idea = idea.id;
+    c.setAttribute('aria-pressed', String(state.idea === idea.id));
+    c.innerHTML = `${esc(idea.label)}<span class="n">${n}</span>`;
+    c.addEventListener('click', () => { state.idea = state.idea === idea.id ? null : idea.id; applyIdea(); });
+    box.appendChild(c);
+  }
+}
+document.querySelectorAll('.seg button').forEach(btn => btn.addEventListener('click', () => {
+  if (state.mode === btn.dataset.mode) return;
+  state.mode = btn.dataset.mode;
+  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-checked', String(b === btn)));
+  document.getElementById('axis-note').textContent = axisNote();
+  render();
+}));
+document.querySelectorAll('.seg button').forEach((btn, i, all) => btn.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); const o = all[(i + 1) % 2]; o.focus(); o.click(); }
+}));
+document.getElementById('showPending').addEventListener('change', e => {
+  state.showPending = e.target.checked;
+  buildIdeas();
+  render();
+});
+function axisNote() {
+  return state.mode === 'read'
+    ? 'Eje: mes en que lo leí.'
+    : `Eje: año en que se escribió, en escala logarítmica para que quepan ${Math.round((2026 - Math.min(...BOOKS.map(b => b.year ?? 2026))) / 100)} siglos.`;
+}
+
+/* leyenda */
+document.getElementById('legend').innerHTML = `
+  <span><svg width="18" height="18" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="var(--ink-2)"/></svg>Leído</span>
+  <span><svg width="22" height="22" aria-hidden="true"><circle cx="11" cy="11" r="8" fill="var(--ink-2)"/><circle cx="11" cy="11" r="2.6" fill="var(--card)"/></svg>Cinco estrellas</span>
+  <span><svg width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="var(--ink-2)" stroke-width="1.6"/><circle cx="12" cy="12" r="6" fill="var(--ink-2)"/></svg>Releído</span>
+  <span><svg width="18" height="18" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="var(--ink-2)" stroke-width="1.8" stroke-dasharray="3 2.4"/></svg>Por leer</span>
+  <span class="axis-note" id="axis-note">${axisNote()}</span>`;
+
+/* año a año */
+function rowHTML(b) {
+  return `<li><button type="button" class="row" data-open="${b.id}" style="--c:${laneColor(b.lane)}">
+    <span class="m">${b.read ? MES[+b.read.slice(5, 7) - 1] : ''}</span>
+    <span class="dot${b.status === 'pendiente' ? ' hollow' : ''}" title="${esc(laneById[b.lane].label)}"></span>
+    <span class="t">${esc(b.title)}<small>${esc(b.author)}${b.pages ? ` · ${b.pages} págs.` : ''}</small></span>
+    ${b.status === 'leido' ? starsHTML(b.rating) : '<span></span>'}
+  </button></li>`;
+}
+(function years() {
+  const box = document.getElementById('years');
+  const cols = [...readYears].reverse().map(y => {
+    const list = read.filter(b => +b.read.slice(0, 4) === y).sort((a, b) => b.read.localeCompare(a.read) || a.title.localeCompare(b.title));
+    const pp = list.reduce((s, b) => s + (b.pages || 0), 0);
+    return `<div class="year"><h3>${y}<span>${list.length} libros · ${pp.toLocaleString('es-ES', { useGrouping: 'always' })} págs.</span></h3><ul class="rows">${list.map(rowHTML).join('')}</ul></div>`;
+  });
+  cols.push(`<div class="year"><h3>Por leer<span>${pending.length} libros</span></h3><ul class="rows">${pending.map(rowHTML).join('')}</ul></div>`);
+  box.innerHTML = cols.join('');
+  box.querySelectorAll('[data-open]').forEach(n => n.addEventListener('click', () => openDrawer(n.dataset.open)));
+})();
+
+/* cobertura */
+function bars(id, buckets) {
+  const max = Math.max(...buckets.map(b => b.items.length), 1);
+  const box = document.getElementById(id);
+  box.innerHTML = buckets.map((b, i) => `
+    <div class="bar-row" data-i="${i}" tabindex="0" aria-label="${esc(b.label)}: ${b.items.length}">
+      <span class="lab">${esc(b.label)}</span>
+      <span class="trk"><span class="fill${b.items.length ? '' : ' zero'}" style="width:${b.items.length / max * 100}%"></span></span>
+      <span class="val">${b.items.length}</span>
+    </div>`).join('');
+  box.querySelectorAll('.bar-row').forEach(row => {
+    const b = buckets[+row.dataset.i];
+    const show = () => {
+      if (!b.items.length) { tip.innerHTML = `<b>${esc(b.label)}</b><span class="tm">Ninguna lectura todavía</span>`; }
+      else {
+        const names = b.items.slice(0, 8).map(x => esc(shortTitle(x.title)));
+        tip.innerHTML = `<b>${esc(b.label)}</b><span class="tm">${names.join(' · ')}${b.items.length > 8 ? ` y ${b.items.length - 8} más` : ''}</span>`;
+      }
+      const r = row.getBoundingClientRect();
+      tip.classList.add('show');
+      const tw = tip.offsetWidth, th = tip.offsetHeight;
+      tip.style.left = Math.max(8, Math.min(r.left + 120, window.innerWidth - tw - 8)) + 'px';
+      tip.style.top = (r.top - th - 8 < 8 ? r.bottom + 8 : r.top - th - 8) + 'px';
+    };
+    row.addEventListener('mouseenter', show); row.addEventListener('focus', show);
+    row.addEventListener('mouseleave', unhover); row.addEventListener('blur', unhover);
+  });
+}
+(function coverage() {
+  const eras = [
+    ['Antes del 500', y => y < 500], ['500–1499', y => y >= 500 && y < 1500], ['1500–1799', y => y >= 1500 && y < 1800],
+    ['1800–1899', y => y >= 1800 && y < 1900], ['1900–1999', y => y >= 1900 && y < 2000], ['Desde 2000', y => y >= 2000],
+  ].map(([label, test]) => ({ label, items: read.filter(b => b.year != null && test(b.year)) }));
+  bars('bars-era', eras);
+  const langs = {};
+  for (const b of read) (langs[b.lang || 'Sin dato'] ||= []).push(b);
+  const lb = Object.entries(langs).map(([label, items]) => ({ label: label[0].toUpperCase() + label.slice(1), items }))
+    .sort((a, b) => (a.label === 'Sin dato') - (b.label === 'Sin dato') || b.items.length - a.items.length);
+  bars('bars-lang', lb);
+  const en = (langs['inglés'] || []).length;
+  const recent = eras[4].items.length + eras[5].items.length;
+  document.getElementById('cov-note').textContent =
+    `${en} de ${read.length} lecturas se escribieron en inglés y ${recent} son posteriores a 1900.` +
+    (eras.some(e => !e.items.length) ? ` Sin ninguna lectura todavía: ${eras.filter(e => !e.items.length).map(e => e.label).join(', ')}.` : '');
+})();
+
+/* notas */
+document.getElementById('notes').innerHTML = [
+  'Las reseñas y las notas son mías. Las notas de contexto y los esquemas los ha escrito Claude, una IA, y van marcados como tales.',
+  'Los meses de lectura son aproximados.',
+  'Cada libro es un archivo de texto en el repositorio. Al añadir o cambiar uno, el mapa se vuelve a publicar solo.',
+  'En «Cuándo se escribió» el eje es logarítmico: cuanto más lejos en el pasado, más comprimido. Así caben la «Odisea» y los libros de 2025 en el mismo plano.',
+].map(t => `<li>${esc(t)}</li>`).join('') +
+  '<li>Portadas: <a href="https://openlibrary.org" rel="noopener">Open Library</a>.</li>';
+
+/* arranque */
+drawStatic();
+buildStations();
+buildIdeas();
+svg.classList.add('no-anim');
+render(true);
+requestAnimationFrame(() => requestAnimationFrame(() => svg.classList.remove('no-anim')));
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { drawLabels(); applyIdea(); });
+</script>
+</body>
+</html>
