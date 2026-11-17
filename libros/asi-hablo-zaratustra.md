@@ -14,6 +14,8 @@ isbn: '9788416365531'
 conexiones:
 - libro: el-idiota
   texto: Nietzsche descubrió a Dostoievski en 1887, después de escribir el Zaratustra, y lo llamó el único psicólogo del que había aprendido algo.
+- libro: sapiens
+  texto: Los dos tratan los valores como una creación humana sin fundamento fuera de nosotros. Nietzsche lo convierte en un reto para crear valores nuevos; Harari, en una tesis histórica sobre las ficciones compartidas.
 ---
 
 ## Reseña

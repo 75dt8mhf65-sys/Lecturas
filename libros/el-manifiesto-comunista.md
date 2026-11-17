@@ -16,6 +16,8 @@ conexiones:
   texto: 'Gorki convierte en novela la toma de conciencia que el Manifiesto anuncia: obreros que leen libros prohibidos y se organizan.'
 - libro: rebelion-en-la-granja
   texto: El discurso del Viejo Mayor que abre la fábula es un eco del Manifiesto. Orwell cuenta después cómo se traiciona esa promesa.
+- libro: sapiens
+  texto: 'Dos explicaciones de toda la historia humana con una sola clave: para Marx y Engels, la lucha de clases; para Harari, la capacidad de creer en ficciones compartidas.'
 ---
 
 ## Reseña

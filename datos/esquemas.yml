@@ -96,3 +96,24 @@ el-manifiesto-comunista:
     - 'Literatura socialista y comunista: crítica de los otros socialismos de la época.'
   - - IV
     - 'Actitud ante los partidos de oposición: táctica y llamamiento final.'
+sapiens:
+- kind: chain
+  title: Las cuatro partes del libro
+  steps:
+  - h: Revolución cognitiva (hace unos 70.000 años)
+    t: Un lenguaje capaz de hablar de cosas que no existen permite cooperar con desconocidos en torno a mitos comunes.
+  - h: Revolución agrícola (hace unos 12.000 años)
+    t: 'Más comida y más población, pero según Harari una vida peor para cada individuo: «el mayor fraude de la historia».'
+  - h: La unificación de la humanidad
+    t: El dinero, los imperios y las religiones universales unen a millones de personas que no se conocen.
+  - h: Revolución científica (hace unos 500 años)
+    t: Admitir la propia ignorancia y la alianza entre ciencia, imperio y capital dan a Sapiens un poder sin precedentes.
+- kind: notes
+  title: Las tesis más discutidas
+  items:
+  - h: Órdenes imaginados
+    t: Leyes, naciones, dinero y derechos humanos existen solo porque mucha gente cree en ellos, igual que los dioses.
+  - h: Biología frente a derechos
+    t: Harari reescribe la Declaración de Independencia de Estados Unidos en «términos biológicos» para sostener que la igualdad y los derechos no existen en la naturaleza.
+  - h: ¿Más felices?
+    t: Cierra preguntando si todo ese poder nos ha hecho más felices y especulando con el final de Homo sapiens por la biotecnología.
